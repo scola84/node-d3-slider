@@ -1,8 +1,8 @@
-const d3 = require('d3-selection');
-require('d3-selection-multi');
-require('d3-transition');
+import { select } from 'd3-selection';
+import 'd3-selection-multi';
+import 'd3-transition';
 
-class Slider {
+export default class Slider {
   constructor(options) {
     this.all = [];
     this.current = [];
@@ -22,7 +22,7 @@ class Slider {
   }
 
   build() {
-    this.outer = d3.select(document.createElement('div'))
+    this.outer = select(document.createElement('div'))
       .classed('scola slider', true)
       .styles({
         'height': '100%',
@@ -504,5 +504,3 @@ class Slider {
     return this;
   }
 }
-
-module.exports = Slider;

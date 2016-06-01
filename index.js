@@ -1,2 +1,5 @@
-const Slider = require('./lib/slider');
-module.exports = (options) => new Slider(options);
+import Slider from './src/slider';
+
+export function slider() {
+  return new Slider();
+}
