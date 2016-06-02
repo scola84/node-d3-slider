@@ -1,6 +1,4 @@
 import { select } from 'd3-selection';
-import 'd3-selection-multi';
-import 'd3-transition';
 
 export default class Slider {
   constructor(options) {
