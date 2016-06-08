@@ -20,7 +20,8 @@ export default class Slider {
   }
 
   build() {
-    this.outer = select(document.createElement('div'))
+    this.outer = select('body')
+      .append('div')
       .classed('scola slider', true)
       .styles({
         'height': '100%',
