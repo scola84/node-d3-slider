@@ -35,6 +35,10 @@ export default class Slider {
     this.outer.remove();
   }
 
+  root() {
+    return this.outer;
+  }
+
   node() {
     return this.outer.node();
   }
