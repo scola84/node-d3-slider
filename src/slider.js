@@ -96,7 +96,7 @@ export default class Slider {
 
     if (this._all.length <= this._amount) {
       this._current.push(element);
-      this._root.node().appendChild(element.node());
+      this._root.node().appendChild(element.root().node());
     }
 
     this._setDimensions(element);
@@ -114,7 +114,7 @@ export default class Slider {
 
     if (this._all.length <= this._amount) {
       this._current.unshift(element);
-      this._root.node().insertBefore(element.node(),
+      this._root.node().insertBefore(element.root().node(),
         this._root.node().firstChild);
     } else {
       this._pointer += 1;
@@ -240,16 +240,16 @@ export default class Slider {
         this._current.push(element);
       }
 
-      size = size || parseInt(element.outer.style(sizeName), 10);
+      size = size || parseInt(element.root().style(sizeName), 10);
 
-      element.outer
+      element.root()
         .transition()
         .duration(this._duration)
         .style(name,
           ((elements.length - index) * -size * this._direction) + 'px')
         .on('end', () => {
           if (this._current.indexOf(element) === -1) {
-            element.outer.remove();
+            element.root().remove();
           }
         });
     });
@@ -257,14 +257,14 @@ export default class Slider {
     elements.forEach((element, index) => {
       this._current.push(element);
 
-      size = size || parseInt(element.outer.style(sizeName), 10);
+      size = size || parseInt(element.root().style(sizeName), 10);
       fromIndex = index + this._amount;
       toIndex = elements.length - index - this._amount;
       numRunning += 1;
 
-      this._root.node().appendChild(element.node());
+      this._root.node().appendChild(element.root().node());
 
-      element.outer
+      element.root()
         .style(name, (fromIndex * size * this._direction) + 'px')
         .transition()
         .duration(this._duration)
@@ -321,12 +321,12 @@ export default class Slider {
 
     elements.forEach((element, index) => {
       this._current.push(element);
-      this._root.node().appendChild(element.node());
+      this._root.node().appendChild(element.root().node());
 
-      size = size || parseInt(element.outer.style(sizeName), 10);
+      size = size || parseInt(element.root().style(sizeName), 10);
       numRunning += 1;
 
-      element.outer
+      element.root()
         .style(name,
           ((elements.length - index) * -size * this._direction) + 'px')
         .transition()
@@ -343,16 +343,16 @@ export default class Slider {
         this._current.push(element);
       }
 
-      size = size || parseInt(element.outer.style(sizeName), 10);
+      size = size || parseInt(element.root().style(sizeName), 10);
 
-      element.outer
+      element.root()
         .transition()
         .duration(this._duration)
         .style(name,
           ((elements.length + index) * size * this._direction) + 'px')
         .on('end', () => {
           if (this._current.indexOf(element) === -1) {
-            element.outer.remove();
+            element.root().remove();
 
             if (this._remove) {
               this._all.splice(this._all.indexOf(element), 1);
@@ -398,16 +398,16 @@ export default class Slider {
       this._pointer + this._amount);
 
     elements.forEach((element, index) => {
-      size = size || parseInt(element.outer.style(sizeName), 10);
+      size = size || parseInt(element.root().style(sizeName), 10);
       toIndex = elements.length - index - this._amount;
       numRunning += 1;
 
       if (current.indexOf(element) === -1) {
-        this._root.node().appendChild(element.node());
-        element.outer.style(name, (index * size * this._direction) + 'px');
+        this._root.node().appendChild(element.root().node());
+        element.root().style(name, (index * size * this._direction) + 'px');
       }
 
-      element.outer
+      element.root()
         .transition()
         .duration(this._duration)
         .style(name, (toIndex * -size * this._direction) + 'px')
@@ -416,7 +416,7 @@ export default class Slider {
           this._running = numRunning > 0;
 
           if (this._current.indexOf(element) === -1) {
-            element.outer.remove();
+            element.root().remove();
           }
         });
     });
@@ -449,17 +449,17 @@ export default class Slider {
     let numRunning = 0;
 
     elements.forEach((element, index) => {
-      size = size || parseInt(element.outer.style(sizeName), 10);
+      size = size || parseInt(element.root().style(sizeName), 10);
       fromIndex = elements.length - index - this._amount;
       numRunning += 1;
 
       if (current.indexOf(element) === -1) {
-        this._root.node().appendChild(element.node());
-        element.outer.style(name,
+        this._root.node().appendChild(element.root().node());
+        element.root().style(name,
           (fromIndex * -size * this._direction) + 'px');
       }
 
-      element.outer
+      element.root()
         .transition()
         .duration(this._duration)
         .style(name, (index * size * this._direction) + 'px')
@@ -468,7 +468,7 @@ export default class Slider {
           this._running = numRunning > 0;
 
           if (this._current.indexOf(element) === -1) {
-            element.outer.remove();
+            element.root().remove();
           }
         });
     });
@@ -488,7 +488,7 @@ export default class Slider {
     pointer = pointer || 0;
 
     this._current.forEach((element) => {
-      element.outer.remove();
+      element.root().remove();
     });
 
     this._pointer = pointer;
@@ -496,7 +496,7 @@ export default class Slider {
       this._pointer + this._amount);
 
     this._current.forEach((element, index) => {
-      this._root.node().appendChild(element.node());
+      this._root.node().appendChild(element.root().node());
       this._setPosition(element, index);
     });
 
@@ -520,16 +520,16 @@ export default class Slider {
     const sizeName = this._getSizeName();
     dimensions[sizeName] = (1 / this._amount * 100) + '%';
 
-    element.outer.styles(dimensions);
+    element.root().styles(dimensions);
     return this;
   }
 
   _setPosition(element, index) {
     const name = this._getPositionName();
     const sizeName = this._getSizeName();
-    const size = parseInt(element.outer.style(sizeName), 10);
+    const size = parseInt(element.root().style(sizeName), 10);
 
-    element.outer.style(name, (index * size) + 'px');
+    element.root().style(name, (index * size) + 'px');
 
     return this;
   }
