@@ -99,9 +99,8 @@ export default class Slider {
       this._root.node().appendChild(element.node());
     }
 
-    this
-      ._setDimensions(element)
-      ._setPosition(element, this._all.indexOf(element));
+    this._setDimensions(element);
+    this._setPosition(element, this._all.indexOf(element));
 
     return this;
   }
@@ -115,15 +114,14 @@ export default class Slider {
 
     if (this._all.length <= this._amount) {
       this._current.unshift(element);
-      this._root.node()
-        .insertBefore(element.node(), this._root.node().firstChild);
+      this._root.node().insertBefore(element.node(),
+        this._root.node().firstChild);
     } else {
       this._pointer += 1;
     }
 
-    this
-      ._setDimensions(element)
-      ._setPosition(element, this._all.indexOf(element));
+    this._setDimensions(element);
+    this._setPosition(element, this._all.indexOf(element));
 
     return this;
   }
@@ -204,11 +202,8 @@ export default class Slider {
       this._pointer -= this._all.length;
     }
 
-    let elements = this._all.slice(
-      this._pointer,
-      this._pointer + this._amount
-    );
-
+    let elements = this._all.slice(this._pointer,
+      this._pointer + this._amount);
     const shortage = this._amount - elements.length;
 
     if (shortage > 0) {
@@ -250,7 +245,8 @@ export default class Slider {
       element.outer
         .transition()
         .duration(this._duration)
-        .style(name, ((elements.length - index) * -size * this._direction) + 'px')
+        .style(name,
+          ((elements.length - index) * -size * this._direction) + 'px')
         .on('end', () => {
           if (this._current.indexOf(element) === -1) {
             element.outer.remove();
@@ -297,11 +293,7 @@ export default class Slider {
       }
     }
 
-    let elements = this._all.slice(
-      this._pointer,
-      this._pointer + amount
-    );
-
+    let elements = this._all.slice(this._pointer, this._pointer + amount);
     const shortage = this._amount - elements.length;
 
     if (shortage > 0 && this._rotate && hasEnough) {
@@ -335,7 +327,8 @@ export default class Slider {
       numRunning += 1;
 
       element.outer
-        .style(name, ((elements.length - index) * -size * this._direction) + 'px')
+        .style(name,
+          ((elements.length - index) * -size * this._direction) + 'px')
         .transition()
         .duration(this._duration)
         .style(name, (index * size * this._direction) + 'px')
@@ -355,7 +348,8 @@ export default class Slider {
       element.outer
         .transition()
         .duration(this._duration)
-        .style(name, ((elements.length + index) * size * this._direction) + 'px')
+        .style(name,
+          ((elements.length + index) * size * this._direction) + 'px')
         .on('end', () => {
           if (this._current.indexOf(element) === -1) {
             element.outer.remove();
@@ -400,10 +394,8 @@ export default class Slider {
     let toIndex = 0;
     let numRunning = 0;
 
-    this._current = this._all.slice(
-      this._pointer,
-      this._pointer + this._amount
-    );
+    this._current = this._all.slice(this._pointer,
+      this._pointer + this._amount);
 
     elements.forEach((element, index) => {
       size = size || parseInt(element.outer.style(sizeName), 10);
@@ -433,11 +425,7 @@ export default class Slider {
   }
 
   _calculateTowardBackward(pointer) {
-    const elements = this._all.slice(
-      pointer,
-      this._pointer + this._amount
-    );
-
+    const elements = this._all.slice(pointer, this._pointer + this._amount);
     this._pointer = pointer;
 
     return elements;
@@ -454,11 +442,7 @@ export default class Slider {
     const sizeName = this._getSizeName();
 
     const current = this._current;
-
-    this._current = elements.slice(
-      0,
-      this._amount
-    );
+    this._current = elements.slice(0, this._amount);
 
     let size = 0;
     let fromIndex = 0;
@@ -471,7 +455,8 @@ export default class Slider {
 
       if (current.indexOf(element) === -1) {
         this._root.node().appendChild(element.node());
-        element.outer.style(name, (fromIndex * -size * this._direction) + 'px');
+        element.outer.style(name,
+          (fromIndex * -size * this._direction) + 'px');
       }
 
       element.outer
@@ -507,10 +492,8 @@ export default class Slider {
     });
 
     this._pointer = pointer;
-    this._current = this._all.slice(
-      this._pointer,
-      this._pointer + this._amount
-    );
+    this._current = this._all.slice(this._pointer,
+      this._pointer + this._amount);
 
     this._current.forEach((element, index) => {
       this._root.node().appendChild(element.node());
