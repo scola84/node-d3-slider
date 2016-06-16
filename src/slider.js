@@ -1,26 +1,20 @@
 import { select } from 'd3-selection';
 
 export default class Slider {
-  constructor(options) {
-    this.all = [];
-    this.current = [];
-    this.pointer = 0;
-    this.running = false;
-    this.direction = 1;
+  constructor() {
+    this._all = [];
+    this._current = [];
+    this._pointer = 0;
+    this._running = false;
 
-    this.options = Object.assign({
-      amount: 1,
-      duration: 300,
-      orientation: 'horizontal',
-      remove: false,
-      rotate: true
-    }, options);
+    this._amount = 1;
+    this._direction = 1;
+    this._duration = 250;
+    this._orientation = 'horizontal';
+    this._remove = false;
+    this._rotate = true;
 
-    this.build();
-  }
-
-  build() {
-    this.outer = select('body')
+    this._root = select('body')
       .append('div')
       .classed('scola slider', true)
       .styles({
@@ -32,112 +26,214 @@ export default class Slider {
   }
 
   destroy() {
-    this.outer.remove();
+    this._root.remove();
   }
 
   root() {
-    return this.outer;
+    return this._root;
   }
 
-  node() {
-    return this.outer.node();
+  amount(amount) {
+    if (typeof amount === 'undefined') {
+      return this._amount;
+    }
+
+    this._amount = amount;
+    return this;
   }
 
-  isRunning() {
-    return this.running;
+  direction(direction) {
+    if (typeof direction === 'undefined') {
+      return this._direction === 1 ? 'ltr' : 'rtl';
+    }
+
+    this._direction = direction === 'ltr' ? 1 : -1;
+    return this;
+  }
+
+  duration(duration) {
+    if (typeof duration === 'undefined') {
+      return this._duration;
+    }
+
+    this._duration = duration;
+    return this;
+  }
+
+  orientation(orientation) {
+    if (typeof orientation === 'undefined') {
+      return this._orientation;
+    }
+
+    this._orientation = orientation;
+    return this;
+  }
+
+  remove(remove) {
+    if (typeof remove === 'undefined') {
+      return this._remove;
+    }
+
+    this._remove = remove;
+    return this;
+  }
+
+  rotate(rotate) {
+    if (typeof rotate === 'undefined') {
+      return this._rotate;
+    }
+
+    this._rotate = rotate;
+    return this;
   }
 
   append(element) {
-    if (this.running) {
+    if (this._running) {
       return this;
     }
 
-    this.all.push(element);
+    this._all.push(element);
 
-    if (this.all.length <= this.options.amount) {
-      this.current.push(element);
-      this.outer.node().appendChild(element.node());
+    if (this._all.length <= this._amount) {
+      this._current.push(element);
+      this._root.node().appendChild(element.node());
     }
 
     this
-      .setDimensions(element)
-      .setPosition(element, this.all.indexOf(element));
+      ._setDimensions(element)
+      ._setPosition(element, this._all.indexOf(element));
 
     return this;
   }
 
   prepend(element) {
-    if (this.running) {
+    if (this._running) {
       return this;
     }
 
-    this.all.unshift(element);
+    this._all.unshift(element);
 
-    if (this.all.length <= this.options.amount) {
-      this.current.unshift(element);
-      this.outer.node()
-        .insertBefore(element.node(), this.outer.node().firstChild);
+    if (this._all.length <= this._amount) {
+      this._current.unshift(element);
+      this._root.node()
+        .insertBefore(element.node(), this._root.node().firstChild);
     } else {
-      this.pointer += 1;
+      this._pointer += 1;
     }
 
     this
-      .setDimensions(element)
-      .setPosition(element, this.all.indexOf(element));
+      ._setDimensions(element)
+      ._setPosition(element, this._all.indexOf(element));
 
     return this;
   }
 
   forward() {
-    if (this.running) {
+    if (this._running) {
       return this;
     }
 
-    return this.slideForward(
-      this.current,
-      this.calculateForward()
+    return this._slideForward(
+      this._current,
+      this._calculateForward()
     );
   }
 
-  calculateForward() {
-    const hasEnough = this.all.length >= 2 * this.options.amount;
-
-    this.pointer += this.options.amount;
-
-    if (this.pointer > this.all.length) {
-      this.pointer -= this.all.length;
+  backward() {
+    if (this._running) {
+      return this;
     }
 
-    let elements = this.all.slice(
-      this.pointer,
-      this.pointer + this.options.amount
+    return this._slideBackward(
+      this._current,
+      this._calculateBackward()
+    );
+  }
+
+  toward(target) {
+    if (this._running) {
+      return this;
+    }
+
+    const pointer = this._all.indexOf(target);
+
+    if (pointer > this._pointer) {
+      this._slideTowardForward(
+        this._calculateTowardForward(pointer)
+      );
+    } else if (pointer < this._pointer) {
+      this._slideTowardBackward(
+        this._calculateTowardBackward(pointer)
+      );
+    }
+
+    return this;
+  }
+
+  reset() {
+    return this
+      ._resetAll()
+      ._resetCurrent();
+  }
+
+  clear(current) {
+    if (this._running) {
+      return this;
+    }
+
+    this._all.forEach((element) => {
+      if (current !== false || this._current.indexOf(element) === -1) {
+        element.destroy();
+      }
+    });
+
+    this._all = [];
+    this._current = current !== false ? [] : this._current;
+    this._pointer = 0;
+    this._running = false;
+
+    return this;
+  }
+
+  _calculateForward() {
+    const hasEnough = this._all.length >= 2 * this._amount;
+
+    this._pointer += this._amount;
+
+    if (this._pointer > this._all.length) {
+      this._pointer -= this._all.length;
+    }
+
+    let elements = this._all.slice(
+      this._pointer,
+      this._pointer + this._amount
     );
 
-    const shortage = this.options.amount - elements.length;
+    const shortage = this._amount - elements.length;
 
     if (shortage > 0) {
-      if (this.options.rotate && hasEnough) {
+      if (this._rotate && hasEnough) {
         elements = elements.concat(
-          this.all.slice(0, shortage)
+          this._all.slice(0, shortage)
         );
       } else {
-        this.pointer -= shortage;
+        this._pointer -= shortage;
       }
     }
 
     return elements;
   }
 
-  slideForward(current, elements) {
+  _slideForward(current, elements) {
     if (elements.length === 0) {
       return this;
     }
 
-    this.running = true;
-    this.current = [];
+    this._running = true;
+    this._current = [];
 
-    const name = this.getPositionName();
-    const sizeName = this.getSizeName();
+    const name = this._getPositionName();
+    const sizeName = this._getSizeName();
 
     let size = 0;
     let fromIndex = 0;
@@ -146,137 +242,126 @@ export default class Slider {
 
     current.forEach((element, index) => {
       if (elements.length - index <= 0) {
-        this.current.push(element);
+        this._current.push(element);
       }
 
       size = size || parseInt(element.outer.style(sizeName), 10);
 
       element.outer
         .transition()
-        .duration(this.options.duration)
-        .style(name, ((elements.length - index) * -size * this.direction) + 'px')
+        .duration(this._duration)
+        .style(name, ((elements.length - index) * -size * this._direction) + 'px')
         .on('end', () => {
-          if (this.current.indexOf(element) === -1) {
+          if (this._current.indexOf(element) === -1) {
             element.outer.remove();
           }
         });
     });
 
     elements.forEach((element, index) => {
-      this.current.push(element);
+      this._current.push(element);
 
       size = size || parseInt(element.outer.style(sizeName), 10);
-      fromIndex = index + this.options.amount;
-      toIndex = elements.length - index - this.options.amount;
+      fromIndex = index + this._amount;
+      toIndex = elements.length - index - this._amount;
       numRunning += 1;
 
-      this.outer.node().appendChild(element.node());
+      this._root.node().appendChild(element.node());
 
       element.outer
-        .style(name, (fromIndex * size * this.direction) + 'px')
+        .style(name, (fromIndex * size * this._direction) + 'px')
         .transition()
-        .duration(this.options.duration)
-        .style(name, (toIndex * -size * this.direction) + 'px')
+        .duration(this._duration)
+        .style(name, (toIndex * -size * this._direction) + 'px')
         .on('end', () => {
           numRunning -= 1;
-          this.running = numRunning > 0;
+          this._running = numRunning > 0;
         });
     });
 
     return this;
   }
 
-  backward() {
-    if (this.running) {
-      return this;
-    }
+  _calculateBackward() {
+    const hasEnough = this._all.length >= 2 * this._amount;
 
-    return this.slideBackward(
-      this.current,
-      this.calculateBackward()
-    );
-  }
+    this._pointer -= this._amount;
+    let amount = this._amount;
 
-  calculateBackward() {
-    const hasEnough = this.all.length >= 2 * this.options.amount;
-
-    this.pointer -= this.options.amount;
-    let amount = this.options.amount;
-
-    if (this.pointer < 0) {
-      if (this.options.rotate && hasEnough) {
-        this.pointer += this.all.length;
+    if (this._pointer < 0) {
+      if (this._rotate && hasEnough) {
+        this._pointer += this._all.length;
       } else {
-        amount += this.pointer;
-        this.pointer = 0;
+        amount += this._pointer;
+        this._pointer = 0;
       }
     }
 
-    let elements = this.all.slice(
-      this.pointer,
-      this.pointer + amount
+    let elements = this._all.slice(
+      this._pointer,
+      this._pointer + amount
     );
 
-    const shortage = this.options.amount - elements.length;
+    const shortage = this._amount - elements.length;
 
-    if (shortage > 0 && this.options.rotate && hasEnough) {
+    if (shortage > 0 && this._rotate && hasEnough) {
       elements = elements.concat(
-        this.all.slice(0, shortage)
+        this._all.slice(0, shortage)
       );
     }
 
     return elements;
   }
 
-  slideBackward(current, elements) {
+  _slideBackward(current, elements) {
     if (elements.length === 0) {
       return this;
     }
 
-    this.running = true;
-    this.current = [];
+    this._running = true;
+    this._current = [];
 
-    const name = this.getPositionName();
-    const sizeName = this.getSizeName();
+    const name = this._getPositionName();
+    const sizeName = this._getSizeName();
 
     let size = 0;
     let numRunning = 0;
 
     elements.forEach((element, index) => {
-      this.current.push(element);
-      this.outer.node().appendChild(element.node());
+      this._current.push(element);
+      this._root.node().appendChild(element.node());
 
       size = size || parseInt(element.outer.style(sizeName), 10);
       numRunning += 1;
 
       element.outer
-        .style(name, ((elements.length - index) * -size * this.direction) + 'px')
+        .style(name, ((elements.length - index) * -size * this._direction) + 'px')
         .transition()
-        .duration(this.options.duration)
-        .style(name, (index * size * this.direction) + 'px')
+        .duration(this._duration)
+        .style(name, (index * size * this._direction) + 'px')
         .on('end', () => {
           numRunning -= 1;
-          this.running = numRunning > 0;
+          this._running = numRunning > 0;
         });
     });
 
     current.forEach((element, index) => {
-      if (elements.length + index < this.options.amount) {
-        this.current.push(element);
+      if (elements.length + index < this._amount) {
+        this._current.push(element);
       }
 
       size = size || parseInt(element.outer.style(sizeName), 10);
 
       element.outer
         .transition()
-        .duration(this.options.duration)
-        .style(name, ((elements.length + index) * size * this.direction) + 'px')
+        .duration(this._duration)
+        .style(name, ((elements.length + index) * size * this._direction) + 'px')
         .on('end', () => {
-          if (this.current.indexOf(element) === -1) {
+          if (this._current.indexOf(element) === -1) {
             element.outer.remove();
 
-            if (this.options.remove) {
-              this.all.splice(this.all.indexOf(element), 1);
+            if (this._remove) {
+              this._all.splice(this._all.indexOf(element), 1);
               element.destroy();
             }
           }
@@ -286,111 +371,93 @@ export default class Slider {
     return this;
   }
 
-  toward(target) {
-    if (this.running) {
-      return this;
-    }
-
-    const pointer = this.all.indexOf(target);
-
-    if (pointer > this.pointer) {
-      this.slideTowardForward(
-        this.calculateTowardForward(pointer)
-      );
-    } else if (pointer < this.pointer) {
-      this.slideTowardBackward(
-        this.calculateTowardBackward(pointer)
-      );
-    }
-
-    return this;
-  }
-
-  calculateTowardForward(pointer) {
-    const elements = this.all.slice(
-      this.pointer,
-      pointer + this.options.amount
+  _calculateTowardForward(pointer) {
+    const elements = this._all.slice(
+      this._pointer,
+      pointer + this._amount
     );
 
-    this.pointer = Math.min(
-      this.all.length - this.options.amount,
+    this._pointer = Math.min(
+      this._all.length - this._amount,
       pointer
     );
 
     return elements;
   }
 
-  slideTowardForward(elements) {
+  _slideTowardForward(elements) {
     if (elements.length === 0) {
       return this;
     }
 
-    this.running = true;
+    this._running = true;
 
-    const current = this.current;
-    const name = this.getPositionName();
-    const sizeName = this.getSizeName();
+    const current = this._current;
+    const name = this._getPositionName();
+    const sizeName = this._getSizeName();
 
     let size = 0;
     let toIndex = 0;
     let numRunning = 0;
 
-    this.current = this.all.slice(
-      this.pointer,
-      this.pointer + this.options.amount
+    this._current = this._all.slice(
+      this._pointer,
+      this._pointer + this._amount
     );
 
     elements.forEach((element, index) => {
       size = size || parseInt(element.outer.style(sizeName), 10);
-      toIndex = elements.length - index - this.options.amount;
+      toIndex = elements.length - index - this._amount;
       numRunning += 1;
 
       if (current.indexOf(element) === -1) {
-        this.outer.node().appendChild(element.node());
-        element.outer.style(name, (index * size * this.direction) + 'px');
+        this._root.node().appendChild(element.node());
+        element.outer.style(name, (index * size * this._direction) + 'px');
       }
 
       element.outer
         .transition()
-        .duration(this.options.duration)
-        .style(name, (toIndex * -size * this.direction) + 'px')
+        .duration(this._duration)
+        .style(name, (toIndex * -size * this._direction) + 'px')
         .on('end', () => {
           numRunning -= 1;
-          this.running = numRunning > 0;
+          this._running = numRunning > 0;
 
-          if (this.current.indexOf(element) === -1) {
+          if (this._current.indexOf(element) === -1) {
             element.outer.remove();
           }
         });
     });
+
+    return this;
   }
 
-  calculateTowardBackward(pointer) {
-    const elements = this.all.slice(
+  _calculateTowardBackward(pointer) {
+    const elements = this._all.slice(
       pointer,
-      this.pointer + this.options.amount
+      this._pointer + this._amount
     );
 
-    this.pointer = pointer;
+    this._pointer = pointer;
 
     return elements;
   }
 
-  slideTowardBackward(elements) {
+  _slideTowardBackward(elements) {
     if (elements.length === 0) {
       return this;
     }
 
-    this.running = true;
+    this._running = true;
 
-    const name = this.getPositionName();
-    const sizeName = this.getSizeName();
+    const name = this._getPositionName();
+    const sizeName = this._getSizeName();
 
-    const current = this.current;
+    const current = this._current;
 
-    this.current = elements.slice(
+    this._current = elements.slice(
       0,
-      this.options.amount
+      this._amount
     );
 
     let size = 0;
@@ -399,110 +466,87 @@ export default class Slider {
 
     elements.forEach((element, index) => {
       size = size || parseInt(element.outer.style(sizeName), 10);
-      fromIndex = elements.length - index - this.options.amount;
+      fromIndex = elements.length - index - this._amount;
       numRunning += 1;
 
       if (current.indexOf(element) === -1) {
-        this.outer.node().appendChild(element.node());
-        element.outer.style(name, (fromIndex * -size * this.direction) + 'px');
+        this._root.node().appendChild(element.node());
+        element.outer.style(name, (fromIndex * -size * this._direction) + 'px');
       }
 
       element.outer
         .transition()
-        .duration(this.options.duration)
-        .style(name, (index * size * this.direction) + 'px')
+        .duration(this._duration)
+        .style(name, (index * size * this._direction) + 'px')
         .on('end', () => {
           numRunning -= 1;
-          this.running = numRunning > 0;
+          this._running = numRunning > 0;
 
-          if (this.current.indexOf(element) === -1) {
+          if (this._current.indexOf(element) === -1) {
             element.outer.remove();
           }
         });
     });
+
+    return this;
   }
 
-  reset() {
-    return this
-      .resetAll()
-      .resetCurrent();
-  }
-
-  resetAll() {
-    this.all.forEach((element) => {
-      this.setDimensions(element);
+  _resetAll() {
+    this._all.forEach((element) => {
+      this._setDimensions(element);
     });
 
     return this;
   }
 
-  resetCurrent(pointer) {
+  _resetCurrent(pointer) {
     pointer = pointer || 0;
 
-    this.current.forEach((element) => {
+    this._current.forEach((element) => {
       element.outer.remove();
     });
 
-    this.pointer = pointer;
-    this.current = this.all.slice(
-      this.pointer,
-      this.pointer + this.options.amount
+    this._pointer = pointer;
+    this._current = this._all.slice(
+      this._pointer,
+      this._pointer + this._amount
     );
 
-    this.current.forEach((element, index) => {
-      this.outer.node().appendChild(element.node());
-      this.setPosition(element, index);
+    this._current.forEach((element, index) => {
+      this._root.node().appendChild(element.node());
+      this._setPosition(element, index);
     });
 
     return this;
   }
 
-  getPositionName() {
-    return this.options.orientation === 'horizontal' ? 'left' : 'top';
+  _getPositionName() {
+    return this._orientation === 'horizontal' ? 'left' : 'top';
   }
 
-  getSizeName() {
-    return this.options.orientation === 'horizontal' ? 'width' : 'height';
+  _getSizeName() {
+    return this._orientation === 'horizontal' ? 'width' : 'height';
   }
 
-  setDimensions(element) {
+  _setDimensions(element) {
     const dimensions = {
       height: '100%',
       width: '100%'
     };
 
-    const sizeName = this.getSizeName();
-    dimensions[sizeName] = (1 / this.options.amount * 100) + '%';
+    const sizeName = this._getSizeName();
+    dimensions[sizeName] = (1 / this._amount * 100) + '%';
 
     element.outer.styles(dimensions);
     return this;
   }
 
-  setPosition(element, index) {
-    const name = this.getPositionName();
-    const sizeName = this.getSizeName();
+  _setPosition(element, index) {
+    const name = this._getPositionName();
+    const sizeName = this._getSizeName();
     const size = parseInt(element.outer.style(sizeName), 10);
 
     element.outer.style(name, (index * size) + 'px');
-
-    return this;
-  }
-
-  clearSlides(current) {
-    if (this.running) {
-      return this;
-    }
-
-    this.all.forEach((element) => {
-      if (current !== false || this.current.indexOf(element) === -1) {
-        element.destroy();
-      }
-    });
-
-    this.all = [];
-    this.current = current !== false ? [] : this.current;
-    this.pointer = 0;
-    this.running = false;
 
     return this;
   }
