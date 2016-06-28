@@ -14,7 +14,7 @@
     "uglify-js": "^2.6.2"
   },
   "scripts": {
-    "build": "rollup -c -n d3_slider -o dist/d3-slider.js",
+    "build": "rollup -c -n d3 -o dist/d3-slider.js",
     "build:min": "uglifyjs dist/d3-slider.js -c -m -o dist/d3-slider.min.js"
   }
 }
