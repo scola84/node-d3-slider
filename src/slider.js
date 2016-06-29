@@ -552,7 +552,7 @@ export default class Slider {
   _setPosition(element, index) {
     const name = this._getPositionName();
     const sizeName = this._getSizeName();
-    const size = parseInt(element.root().style(sizeName), 10);
+    const size = parseFloat(this._root.style(sizeName)) / this._amount;
 
     element.root().style(name, (index * size) + 'px');
 
