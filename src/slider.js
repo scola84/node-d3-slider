@@ -16,6 +16,7 @@ export default class Slider {
 
     this._root = select('body')
       .append('div')
+      .remove()
       .classed('scola slider', true)
       .styles({
         'height': '100%',
