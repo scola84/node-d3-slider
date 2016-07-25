@@ -123,6 +123,7 @@ export default class Slider {
       this._current.unshift(element);
       this._root.node().insertBefore(element.root().node(),
         this._root.node().firstChild);
+
       this._root.dispatch('slide', {
         detail: this._current
       });
