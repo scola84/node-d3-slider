@@ -36,57 +36,57 @@ export default class Slider {
     return this._root;
   }
 
-  amount(amount) {
-    if (typeof amount === 'undefined') {
+  amount(value) {
+    if (typeof value === 'undefined') {
       return this._amount;
     }
 
-    this._amount = amount;
+    this._amount = value;
     return this;
   }
 
-  direction(direction) {
-    if (typeof direction === 'undefined') {
+  direction(value) {
+    if (typeof value === 'undefined') {
       return this._direction === 1 ? 'ltr' : 'rtl';
     }
 
-    this._direction = direction === 'ltr' ? 1 : -1;
+    this._direction = value === 'ltr' ? 1 : -1;
     return this;
   }
 
-  duration(duration) {
-    if (typeof duration === 'undefined') {
+  duration(value) {
+    if (typeof value === 'undefined') {
       return this._duration;
     }
 
-    this._duration = duration;
+    this._duration = value;
     return this;
   }
 
-  orientation(orientation) {
-    if (typeof orientation === 'undefined') {
+  orientation(value) {
+    if (typeof value === 'undefined') {
       return this._orientation;
     }
 
-    this._orientation = orientation;
+    this._orientation = value;
     return this;
   }
 
-  remove(remove) {
-    if (typeof remove === 'undefined') {
+  remove(value) {
+    if (typeof value === 'undefined') {
       return this._remove;
     }
 
-    this._remove = remove;
+    this._remove = value;
     return this;
   }
 
-  rotate(rotate) {
-    if (typeof rotate === 'undefined') {
+  rotate(value) {
+    if (typeof value === 'undefined') {
       return this._rotate;
     }
 
-    this._rotate = rotate;
+    this._rotate = value;
     return this;
   }
 

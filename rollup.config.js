@@ -1,4 +1,4 @@
-import babel from 'rollup-plugin-babel';
+import buble from 'rollup-plugin-buble';
 
 export default {
   entry: 'index.js',
@@ -7,8 +7,6 @@ export default {
     'd3-selection': 'd3'
   },
   plugins: [
-    babel({
-      presets: ['es2015-rollup']
-    })
+    buble()
   ]
 };
