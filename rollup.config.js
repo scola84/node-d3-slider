@@ -2,16 +2,13 @@ import buble from 'rollup-plugin-buble';
 import resolve from 'rollup-plugin-node-resolve';
 
 export default {
+  dest: './dist/d3-slider.js',
   entry: 'index.js',
   format: 'umd',
-  globals: {
-    'd3-selection': 'd3',
-    'd3-selection-multi': 'd3',
-    'd3-transition': 'd3'
-  },
+  moduleName: 'd3',
   plugins: [
     resolve({
-      'jsnext:main': true
+      jsnext: true
     }),
     buble()
   ]
