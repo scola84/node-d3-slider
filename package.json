@@ -8,15 +8,22 @@
   "main": "./dist/d3-slider.js",
   "jsnext:main": "index.js",
   "dependencies": {
-    "d3-selection": "^1.0.2"
+    "d3-selection": "^1.0.2",
+    "d3-selection-multi": "^1.0.0",
+    "d3-transition": "^1.0.2"
   },
   "devDependencies": {
-    "rollup": "^0.35.9",
-    "rollup-plugin-buble": "^0.13.0",
+    "rollup": "^0.36.1",
+    "rollup-plugin-buble": "^0.14.0",
+    "rollup-plugin-node-resolve": "^2.0.0",
     "uglify-js": "^2.7.3"
   },
   "scripts": {
-    "build": "rollup -c -n d3 -o dist/d3-slider.js",
-    "build:min": "uglifyjs dist/d3-slider.js -c -m -o dist/d3-slider.min.js"
+    "build": "npm run cleanup && npm run rollup",
+    "build:min": "npm run build && npm run min",
+    "cleanup": "rm -rf dist",
+    "min": "npm run min:js && gzip -9 -k dist/*",
+    "min:js": "uglifyjs dist/d3-slider.js -m -o dist/d3-slider.min.js",
+    "rollup": "rollup -c -n d3 -o dist/d3-slider.js"
   }
 }
