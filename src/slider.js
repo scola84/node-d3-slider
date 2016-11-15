@@ -181,6 +181,10 @@ export default class Slider {
     return this;
   }
 
+  has(element) {
+    return this._all.indexOf(element) > -1;
+  }
+
   reset() {
     return this
       ._resetAll()
