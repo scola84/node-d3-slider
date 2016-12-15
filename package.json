@@ -11,19 +11,5 @@
     "d3-selection": "^1.0.2",
     "d3-selection-multi": "^1.0.0",
     "d3-transition": "^1.0.2"
-  },
-  "devDependencies": {
-    "rollup": "^0.36.1",
-    "rollup-plugin-buble": "^0.14.0",
-    "rollup-plugin-node-resolve": "^2.0.0",
-    "uglify-js": "^2.7.3"
-  },
-  "scripts": {
-    "build": "npm run cleanup && npm run rollup",
-    "build:min": "npm run build && npm run min",
-    "cleanup": "rm -rf dist",
-    "min": "uglifyjs dist/d3-slider.js -m -o dist/d3-slider.min.js",
-    "prepublish": "npm run build:min",
-    "rollup": "rollup -c"
   }
 }
