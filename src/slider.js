@@ -4,17 +4,17 @@ import 'd3-transition';
 
 export default class Slider {
   constructor() {
-    this._all = [];
-    this._current = [];
-    this._pointer = 0;
-    this._running = false;
-
     this._amount = 1;
     this._direction = 1;
     this._duration = 250;
     this._orientation = 'horizontal';
     this._remove = false;
     this._rotate = true;
+
+    this._all = [];
+    this._current = [];
+    this._pointer = 0;
+    this._running = false;
 
     this._root = select('body')
       .append('div')
@@ -29,6 +29,15 @@ export default class Slider {
   }
 
   destroy() {
+    this._all.forEach((slide) => {
+      slide.destroy();
+    });
+
+    this._all = [];
+    this._current = [];
+    this._pointer = 0;
+    this._runnnig = false;
+
     this._root.dispatch('destroy');
     this._root.remove();
     this._root = null;
@@ -38,8 +47,8 @@ export default class Slider {
     return this._root;
   }
 
-  amount(value) {
-    if (typeof value === 'undefined') {
+  amount(value = null) {
+    if (value === null) {
       return this._amount;
     }
 
@@ -47,8 +56,8 @@ export default class Slider {
     return this;
   }
 
-  direction(value) {
-    if (typeof value === 'undefined') {
+  direction(value = null) {
+    if (value === null) {
       return this._direction === 1 ? 'ltr' : 'rtl';
     }
 
@@ -56,8 +65,8 @@ export default class Slider {
     return this;
   }
 
-  duration(value) {
-    if (typeof value === 'undefined') {
+  duration(value = null) {
+    if (value === null) {
       return this._duration;
     }
 
@@ -65,8 +74,8 @@ export default class Slider {
     return this;
   }
 
-  orientation(value) {
-    if (typeof value === 'undefined') {
+  orientation(value = null) {
+    if (value === null) {
       return this._orientation;
     }
 
@@ -74,8 +83,8 @@ export default class Slider {
     return this;
   }
 
-  remove(value) {
-    if (typeof value === 'undefined') {
+  remove(value = null) {
+    if (value === null) {
       return this._remove;
     }
 
@@ -83,8 +92,8 @@ export default class Slider {
     return this;
   }
 
-  rotate(value) {
-    if (typeof value === 'undefined') {
+  rotate(value = null) {
+    if (value === null) {
       return this._rotate;
     }
 
@@ -92,8 +101,14 @@ export default class Slider {
     return this;
   }
 
-  append(element) {
+  append(element, action = true) {
     if (this._running) {
+      return this;
+    }
+
+    if (action === false) {
+      this._all.splice(this._all.indexOf(element), 1);
+      element.destroy();
       return this;
     }
 
@@ -114,8 +129,14 @@ export default class Slider {
     return this;
   }
 
-  prepend(element) {
+  prepend(element, action = true) {
     if (this._running) {
+      return this;
+    }
+
+    if (action === false) {
+      this._all.splice(this._all.indexOf(element), 1);
+      element.destroy();
       return this;
     }
 
