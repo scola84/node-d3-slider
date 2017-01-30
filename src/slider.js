@@ -29,10 +29,6 @@ export default class Slider {
   }
 
   destroy() {
-    this._all.forEach((slide) => {
-      slide.destroy();
-    });
-
     this._all = [];
     this._current = [];
     this._pointer = 0;
@@ -108,7 +104,7 @@ export default class Slider {
 
     if (action === false) {
       this._all.splice(this._all.indexOf(element), 1);
-      element.destroy();
+      element.root().remove();
       return this;
     }
 
@@ -136,7 +132,7 @@ export default class Slider {
 
     if (action === false) {
       this._all.splice(this._all.indexOf(element), 1);
-      element.destroy();
+      element.root().remove();
       return this;
     }
 
@@ -219,7 +215,7 @@ export default class Slider {
 
     this._all.forEach((element) => {
       if (current !== false || this._current.indexOf(element) === -1) {
-        element.destroy();
+        element.root().remove();
       }
     });
 
@@ -400,7 +396,6 @@ export default class Slider {
 
             if (this._remove) {
               this._all.splice(this._all.indexOf(element), 1);
-              element.destroy();
             }
           }
         });
