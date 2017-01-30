@@ -1,3 +1,5 @@
+import eachOf from 'async/eachOf';
+import parallel from 'async/parallel';
 import { select } from 'd3-selection';
 import 'd3-selection-multi';
 import 'd3-transition';
@@ -113,10 +115,7 @@ export default class Slider {
     if (this._all.length <= this._amount) {
       this._current.push(element);
       this._root.node().appendChild(element.root().node());
-
-      this._root.dispatch('slide', {
-        detail: this._current
-      });
+      this._finishSlide();
     }
 
     this._setDimensions(element);
@@ -142,10 +141,7 @@ export default class Slider {
       this._current.unshift(element);
       this._root.node().insertBefore(element.root().node(),
         this._root.node().firstChild);
-
-      this._root.dispatch('slide', {
-        detail: this._current
-      });
+      this._finishSlide();
     } else {
       this._pointer += 1;
     }
@@ -156,30 +152,33 @@ export default class Slider {
     return this;
   }
 
-  forward() {
+  forward(callback = () => {}) {
     if (this._running) {
       return this;
     }
 
     return this._slideForward(
       this._current,
-      this._calculateForward()
+      this._calculateForward(),
+      callback
     );
   }
 
-  backward() {
+  backward(callback = () => {}) {
     if (this._running) {
       return this;
     }
 
     return this._slideBackward(
       this._current,
-      this._calculateBackward()
+      this._calculateBackward(),
+      callback
     );
   }
 
-  toward(target) {
+  toward(target, callback = () => {}) {
     if (this._running) {
+      callback();
       return this;
     }
 
@@ -187,11 +186,13 @@ export default class Slider {
 
     if (pointer > this._pointer) {
       this._slideTowardForward(
-        this._calculateTowardForward(pointer)
+        this._calculateTowardForward(pointer),
+        callback
       );
     } else if (pointer < this._pointer) {
       this._slideTowardBackward(
-        this._calculateTowardBackward(pointer)
+        this._calculateTowardBackward(pointer),
+        callback
       );
     }
 
@@ -253,7 +254,7 @@ export default class Slider {
     return elements;
   }
 
-  _slideForward(current, elements) {
+  _slideForward(current, elements, callback) {
     if (elements.length === 0) {
       return this;
     }
@@ -261,58 +262,62 @@ export default class Slider {
     this._running = true;
     this._current = [];
 
-    const name = this._getPositionName();
     const sizeName = this._getSizeName();
     const size = parseFloat(this._root.style(sizeName)) / this._amount;
 
-    let fromIndex = 0;
-    let toIndex = 0;
-    let numRunning = 0;
-
-    current.forEach((element, index) => {
-      if (elements.length - index <= 0) {
-        this._current.push(element);
+    parallel([
+      (parallelCallback) => {
+        eachOf(elements, (element, index, eachCallback) => {
+          this._showForward(elements, element, index, size, eachCallback);
+        }, parallelCallback);
+      },
+      (parallelCallback) => {
+        eachOf(current, (element, index, eachCallback) => {
+          this._hideForward(elements, element, index, size, eachCallback);
+        }, parallelCallback);
       }
-
-      element.root()
-        .transition()
-        .duration(this._duration)
-        .style(name,
-          ((elements.length - index) * -size * this._direction) + 'px')
-        .on('end', () => {
-          if (this._current.indexOf(element) === -1) {
-            element.root().remove();
-          }
-        });
-    });
-
-    elements.forEach((element, index) => {
-      this._current.push(element);
-
-      fromIndex = index + this._amount;
-      toIndex = elements.length - index - this._amount;
-      numRunning += 1;
-
-      this._root.node().appendChild(element.root().node());
-
-      element.root()
-        .style(name, (fromIndex * size * this._direction) + 'px')
-        .transition()
-        .duration(this._duration)
-        .style(name, (toIndex * -size * this._direction) + 'px')
-        .on('end', () => {
-          numRunning -= 1;
-
-          if (numRunning === 0) {
-            this._running = false;
-            this._root.dispatch('slide', {
-              detail: this._current
-            });
-          }
-        });
+    ], () => {
+      this._finishSlide(callback);
     });
 
     return this;
+  }
+
+  _showForward(elements, element, index, size, eachCallback) {
+    this._current.push(element);
+
+    const fromValue = (index + this._amount) * size * this._direction;
+    const toValue = (elements.length - index - this._amount) *
+      -size * this._direction;
+
+    this._root.node().appendChild(element.root().node());
+
+    element.root()
+      .style(this._getPositionName(), fromValue + 'px')
+      .transition()
+      .duration(this._duration)
+      .style(this._getPositionName(), toValue + 'px')
+      .on('end', eachCallback);
+  }
+
+  _hideForward(elements, element, index, size, eachCallback) {
+    if (elements.length - index <= 0) {
+      this._current.push(element);
+    }
+
+    const toValue = (elements.length - index) * -size * this._direction;
+
+    element.root()
+      .transition()
+      .duration(this._duration)
+      .style(this._getPositionName(), toValue + 'px')
+      .on('end', () => {
+        if (this._current.indexOf(element) === -1) {
+          element.root().remove();
+        }
+
+        eachCallback();
+      });
   }
 
   _calculateBackward() {
@@ -342,7 +347,7 @@ export default class Slider {
     return elements;
   }
 
-  _slideBackward(current, elements) {
+  _slideBackward(current, elements, callback) {
     if (elements.length === 0) {
       return this;
     }
@@ -350,58 +355,64 @@ export default class Slider {
     this._running = true;
     this._current = [];
 
-    const name = this._getPositionName();
     const sizeName = this._getSizeName();
     const size = parseFloat(this._root.style(sizeName)) / this._amount;
 
-    let numRunning = 0;
-
-    elements.forEach((element, index) => {
-      this._current.push(element);
-      this._root.node().appendChild(element.root().node());
-
-      numRunning += 1;
-
-      element.root()
-        .style(name,
-          ((elements.length - index) * -size * this._direction) + 'px')
-        .transition()
-        .duration(this._duration)
-        .style(name, (index * size * this._direction) + 'px')
-        .on('end', () => {
-          numRunning -= 1;
-
-          if (numRunning === 0) {
-            this._running = false;
-            this._root.dispatch('slide', {
-              detail: this._current
-            });
-          }
-        });
-    });
-
-    current.forEach((element, index) => {
-      if (elements.length + index < this._amount) {
-        this._current.push(element);
+    parallel([
+      (parallelCallback) => {
+        eachOf(elements, (element, index, eachCallback) => {
+          this._showBackward(elements, element, index, size, eachCallback);
+        }, parallelCallback);
+      },
+      (parallelCallback) => {
+        eachOf(current, (element, index, eachCallback) => {
+          this._hideBackward(elements, element, index, size, eachCallback);
+        }, parallelCallback);
       }
-
-      element.root()
-        .transition()
-        .duration(this._duration)
-        .style(name,
-          ((elements.length + index) * size * this._direction) + 'px')
-        .on('end', () => {
-          if (this._current.indexOf(element) === -1) {
-            element.root().remove();
-
-            if (this._remove) {
-              this._all.splice(this._all.indexOf(element), 1);
-            }
-          }
-        });
+    ], () => {
+      this._finishSlide(callback);
     });
 
     return this;
+  }
+
+  _showBackward(elements, element, index, size, eachCallback) {
+    this._current.push(element);
+    this._root.node().appendChild(element.root().node());
+
+    const fromValue = (elements.length - index) * -size * this._direction;
+    const toValue = index * size * this._direction;
+
+    element.root()
+      .style(this._getPositionName(), fromValue + 'px')
+      .transition()
+      .duration(this._duration)
+      .style(this._getPositionName(), toValue + 'px')
+      .on('end', eachCallback);
+  }
+
+  _hideBackward(elements, element, index, size, eachCallback) {
+    if (elements.length + index < this._amount) {
+      this._current.push(element);
+    }
+
+    const toValue = (elements.length + index) * size * this._direction;
+
+    element.root()
+      .transition()
+      .duration(this._duration)
+      .style(this._getPositionName(), toValue + 'px')
+      .on('end', () => {
+        if (this._current.indexOf(element) === -1) {
+          element.root().remove();
+
+          if (this._remove) {
+            this._all.splice(this._all.indexOf(element), 1);
+          }
+        }
+
+        eachCallback();
+      });
   }
 
   _calculateTowardForward(pointer) {
@@ -418,54 +429,48 @@ export default class Slider {
     return elements;
   }
 
-  _slideTowardForward(elements) {
+  _slideTowardForward(elements, callback) {
     if (elements.length === 0) {
       return this;
     }
 
     this._running = true;
 
-    const current = this._current;
-    const name = this._getPositionName();
     const sizeName = this._getSizeName();
     const size = parseFloat(this._root.style(sizeName)) / this._amount;
-
-    let toIndex = 0;
-    let numRunning = 0;
 
     this._current = this._all.slice(this._pointer,
       this._pointer + this._amount);
 
-    elements.forEach((element, index) => {
-      toIndex = elements.length - index - this._amount;
-      numRunning += 1;
-
-      if (current.indexOf(element) === -1) {
-        this._root.node().appendChild(element.root().node());
-        element.root().style(name, (index * size * this._direction) + 'px');
-      }
-
-      element.root()
-        .transition()
-        .duration(this._duration)
-        .style(name, (toIndex * -size * this._direction) + 'px')
-        .on('end', () => {
-          numRunning -= 1;
-
-          if (numRunning === 0) {
-            this._running = false;
-            this._root.dispatch('slide', {
-              detail: this._current
-            });
-          }
-
-          if (this._current.indexOf(element) === -1) {
-            element.root().remove();
-          }
-        });
+    eachOf(elements, (element, index, eachCallback) => {
+      this._towardForward(elements, element, index, size, eachCallback);
+    }, () => {
+      this._finishSlide(callback);
     });
 
     return this;
+  }
+
+  _towardForward(elements, element, index, size, eachCallback) {
+    if (this._current.indexOf(element) === -1) {
+      this._root.node().appendChild(element.root().node());
+      element.root().style(name, (index * size * this._direction) + 'px');
+    }
+
+    const toValue = (elements.length - index - this._amount) *
+      -size * this._direction;
+
+    element.root()
+      .transition()
+      .duration(this._duration)
+      .style(this._getPositionName(), toValue + 'px')
+      .on('end', () => {
+        if (this._current.indexOf(element) === -1) {
+          element.root().remove();
+        }
+
+        eachCallback();
+      });
   }
 
   _calculateTowardBackward(pointer) {
@@ -475,54 +480,57 @@ export default class Slider {
     return elements;
   }
 
-  _slideTowardBackward(elements) {
+  _slideTowardBackward(elements, callback) {
     if (elements.length === 0) {
       return this;
     }
 
     this._running = true;
 
-    const name = this._getPositionName();
     const sizeName = this._getSizeName();
     const size = parseFloat(this._root.style(sizeName)) / this._amount;
 
-    const current = this._current;
     this._current = elements.slice(0, this._amount);
 
-    let fromIndex = 0;
-    let numRunning = 0;
-
-    elements.forEach((element, index) => {
-      fromIndex = elements.length - index - this._amount;
-      numRunning += 1;
-
-      if (current.indexOf(element) === -1) {
-        this._root.node().appendChild(element.root().node());
-        element.root().style(name,
-          (fromIndex * -size * this._direction) + 'px');
-      }
-
-      element.root()
-        .transition()
-        .duration(this._duration)
-        .style(name, (index * size * this._direction) + 'px')
-        .on('end', () => {
-          numRunning -= 1;
-
-          if (numRunning === 0) {
-            this._running = false;
-            this._root.dispatch('slide', {
-              detail: this._current
-            });
-          }
-
-          if (this._current.indexOf(element) === -1) {
-            element.root().remove();
-          }
-        });
+    eachOf(elements, (element, index, eachCallback) => {
+      this._towardBackward(elements, element, index, size, eachCallback);
+    }, () => {
+      this._finishSlide(callback);
     });
 
     return this;
+  }
+
+  _towardBackward(elements, element, index, size, eachCallback) {
+    const fromValue = (elements.length - index - this._amount) *
+      -size * this._direction;
+
+    if (this._current.indexOf(element) === -1) {
+      this._root.node().appendChild(element.root().node());
+      element.root().style(name, fromValue + 'px');
+    }
+
+    element.root()
+      .transition()
+      .duration(this._duration)
+      .style(name, (index * size * this._direction) + 'px')
+      .on('end', () => {
+        if (this._current.indexOf(element) === -1) {
+          element.root().remove();
+        }
+
+        eachCallback();
+      });
+  }
+
+  _finishSlide(callback = () => {}) {
+    this._running = false;
+
+    this._root.dispatch('slide', {
+      detail: this._current
+    });
+
+    callback();
   }
 
   _resetAll() {
