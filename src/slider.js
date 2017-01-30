@@ -436,6 +436,7 @@ export default class Slider {
 
     this._running = true;
 
+    const current = this._current;
     const sizeName = this._getSizeName();
     const size = parseFloat(this._root.style(sizeName)) / this._amount;
 
@@ -443,6 +444,13 @@ export default class Slider {
       this._pointer + this._amount);
 
     eachOf(elements, (element, index, eachCallback) => {
+      const fromValue = index * size * this._direction;
+
+      if (current.indexOf(element) === -1) {
+        this._root.node().appendChild(element.root().node());
+        element.root().style(this._getPositionName(), fromValue + 'px');
+      }
+
       this._towardForward(elements, element, index, size, eachCallback);
     }, () => {
       this._finishSlide(callback);
@@ -452,11 +460,6 @@ export default class Slider {
   }
 
   _towardForward(elements, element, index, size, eachCallback) {
-    if (this._current.indexOf(element) === -1) {
-      this._root.node().appendChild(element.root().node());
-      element.root().style(name, (index * size * this._direction) + 'px');
-    }
-
     const toValue = (elements.length - index - this._amount) *
       -size * this._direction;
 
@@ -487,12 +490,21 @@ export default class Slider {
 
     this._running = true;
 
+    const current = this._current;
     const sizeName = this._getSizeName();
     const size = parseFloat(this._root.style(sizeName)) / this._amount;
 
     this._current = elements.slice(0, this._amount);
 
     eachOf(elements, (element, index, eachCallback) => {
+      const fromValue = (elements.length - index - this._amount) *
+        -size * this._direction;
+
+      if (current.indexOf(element) === -1) {
+        this._root.node().appendChild(element.root().node());
+        element.root().style(this._getPositionName(), fromValue + 'px');
+      }
+
       this._towardBackward(elements, element, index, size, eachCallback);
     }, () => {
       this._finishSlide(callback);
@@ -502,18 +514,12 @@ export default class Slider {
   }
 
   _towardBackward(elements, element, index, size, eachCallback) {
-    const fromValue = (elements.length - index - this._amount) *
-      -size * this._direction;
-
-    if (this._current.indexOf(element) === -1) {
-      this._root.node().appendChild(element.root().node());
-      element.root().style(name, fromValue + 'px');
-    }
+    const toValue = index * size * this._direction;
 
     element.root()
       .transition()
       .duration(this._duration)
-      .style(name, (index * size * this._direction) + 'px')
+      .style(this._getPositionName(), toValue + 'px')
       .on('end', () => {
         if (this._current.indexOf(element) === -1) {
           element.root().remove();
