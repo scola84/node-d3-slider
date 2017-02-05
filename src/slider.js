@@ -121,7 +121,7 @@ export default class Slider {
     this._setDimensions(element);
     this._setPosition(element, this._all.indexOf(element));
 
-    return this;
+    return element;
   }
 
   prepend(element, action = true) {
@@ -149,7 +149,7 @@ export default class Slider {
     this._setDimensions(element);
     this._setPosition(element, this._all.indexOf(element));
 
-    return this;
+    return element;
   }
 
   forward(callback = () => {}) {
