@@ -1,8 +1,6 @@
 import eachOf from 'async/eachOf';
 import parallel from 'async/parallel';
-import { select } from 'd3-selection';
-import 'd3-selection-multi';
-import 'd3-transition';
+import { select } from 'd3';
 
 export default class Slider {
   constructor() {
