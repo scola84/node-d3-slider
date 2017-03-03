@@ -1,5 +1,9 @@
 import Slider from './src/slider';
 
-export function slider() {
+function slider() {
   return new Slider();
 }
+
+export {
+  slider
+};
