@@ -290,7 +290,6 @@ export default class Slider {
 
     this._root.append(() => element.root().node());
 
-
     element.root()
       .style(this._getPositionName(), fromValue + 'px')
       .transition()
