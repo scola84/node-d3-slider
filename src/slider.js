@@ -98,7 +98,7 @@ export default class Slider {
   }
 
   append(element, action = true) {
-    if (this._running) {
+    if (this._running === true) {
       return this;
     }
 
@@ -123,7 +123,7 @@ export default class Slider {
   }
 
   prepend(element, action = true) {
-    if (this._running) {
+    if (this._running === true) {
       return this;
     }
 
@@ -151,7 +151,7 @@ export default class Slider {
   }
 
   forward(callback = () => {}) {
-    if (this._running) {
+    if (this._running === true) {
       return this;
     }
 
@@ -163,7 +163,7 @@ export default class Slider {
   }
 
   backward(callback = () => {}) {
-    if (this._running) {
+    if (this._running === true) {
       return this;
     }
 
@@ -175,7 +175,7 @@ export default class Slider {
   }
 
   toward(target, callback = () => {}) {
-    if (this._running) {
+    if (this._running === true) {
       callback();
       return this;
     }
@@ -208,7 +208,7 @@ export default class Slider {
   }
 
   clear(current) {
-    if (this._running) {
+    if (this._running === true) {
       return this;
     }
 
@@ -240,7 +240,7 @@ export default class Slider {
     const shortage = this._amount - elements.length;
 
     if (shortage > 0) {
-      if (this._rotate && hasEnough) {
+      if (this._rotate === true && hasEnough === true) {
         elements = elements.concat(
           this._all.slice(0, shortage)
         );
@@ -325,7 +325,7 @@ export default class Slider {
     let amount = this._amount;
 
     if (this._pointer < 0) {
-      if (this._rotate && hasEnough) {
+      if (this._rotate === true && hasEnough === true) {
         this._pointer += this._all.length;
       } else {
         amount += this._pointer;
@@ -336,10 +336,12 @@ export default class Slider {
     let elements = this._all.slice(this._pointer, this._pointer + amount);
     const shortage = this._amount - elements.length;
 
-    if (shortage > 0 && this._rotate && hasEnough) {
-      elements = elements.concat(
-        this._all.slice(0, shortage)
-      );
+    if (shortage > 0) {
+      if (this._rotate === true && hasEnough === true) {
+        elements = elements.concat(
+          this._all.slice(0, shortage)
+        );
+      }
     }
 
     return elements;
@@ -404,7 +406,7 @@ export default class Slider {
         if (this._current.indexOf(element) === -1) {
           element.root().remove();
 
-          if (this._remove) {
+          if (this._remove === true) {
             this._all.splice(this._all.indexOf(element), 1);
           }
         }
