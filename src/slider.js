@@ -32,7 +32,7 @@ export default class Slider {
     this._all = [];
     this._current = [];
     this._pointer = 0;
-    this._runnnig = false;
+    this._running = false;
 
     this._root.dispatch('destroy');
     this._root.remove();
