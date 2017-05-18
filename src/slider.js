@@ -261,7 +261,8 @@ export default class Slider {
     this._current = [];
 
     const sizeName = this._getSizeName();
-    const size = parseFloat(this._root.style(sizeName)) / this._amount;
+    const dimensions = this._root.dimensions();
+    const size = dimensions[sizeName] / this._amount;
 
     parallel([
       (parallelCallback) => {
@@ -356,7 +357,8 @@ export default class Slider {
     this._current = [];
 
     const sizeName = this._getSizeName();
-    const size = parseFloat(this._root.style(sizeName)) / this._amount;
+    const dimensions = this._root.dimensions();
+    const size = dimensions[sizeName] / this._amount;
 
     parallel([
       (parallelCallback) => {
@@ -438,7 +440,8 @@ export default class Slider {
 
     const current = this._current;
     const sizeName = this._getSizeName();
-    const size = parseFloat(this._root.style(sizeName)) / this._amount;
+    const dimensions = this._root.dimensions();
+    const size = dimensions[sizeName] / this._amount;
 
     this._current = this._all.slice(this._pointer,
       this._pointer + this._amount);
@@ -492,7 +495,8 @@ export default class Slider {
 
     const current = this._current;
     const sizeName = this._getSizeName();
-    const size = parseFloat(this._root.style(sizeName)) / this._amount;
+    const dimensions = this._root.dimensions();
+    const size = dimensions[sizeName] / this._amount;
 
     this._current = elements.slice(0, this._amount);
 
@@ -590,10 +594,10 @@ export default class Slider {
   _setPosition(element, index) {
     const name = this._getPositionName();
     const sizeName = this._getSizeName();
-    const size = parseFloat(this._root.style(sizeName)) / this._amount;
+    const dimensions = this._root.dimensions();
+    const size = dimensions[sizeName] / this._amount;
 
     element.root().style(name, (index * size) + 'px');
-
     return this;
   }
 }
