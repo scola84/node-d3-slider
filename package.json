@@ -9,6 +9,6 @@
   "jsnext:main": "./index.js",
   "dependencies": {
     "async": "^2.4.0",
-    "d3": "^4.8.0"
+    "d3": "^4.9.1"
   }
 }
