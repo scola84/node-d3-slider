@@ -1,6 +1,6 @@
 {
   "name": "@scola/d3-slider",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Slider",
   "repository": "github:scola84/node-d3-slider",
   "author": "M.C. van den Boogaart <scola@kvdb.name>",
